@@ -139,11 +139,49 @@ class Paint:  # Define la clase Paint
     
     
     def activar_lapiz(self):
-        self.desactivar_lapiz()
-        self.current_tool = "paint"
-        self.canvas.config(cursor="pencil")
-        self.canvas.bind('<Button-1>', self.linea_xy)
-        self.canvas.bind('<B1-Motion>', self.paint)
+        self.desactivar_lapiz()  # Desactiva cualquier otra herramienta
+        self.current_tool = "paint"  # Establece la herramienta actual como lápiz
+        self.canvas.config(cursor="pencil")  # Cambia el cursor a un lápiz
+        self.canvas.bind('<Button-1>', self.linea_xy)  # Vincula el evento de clic izquierdo a la función linea_xy
+        self.canvas.bind('<B1-Motion>', self.paint)  # Vincula el evento de arrastre del ratón a la función paint
+
+    def activar_linea(self):
+        self.desactivar_lapiz()  # Desactiva cualquier otra herramienta
+        self.current_tool = "line"  # Establece la herramienta actual como línea
+        self.canvas.config(cursor="cross")  # Cambia el cursor a una cruz
+        self.canvas.bind('<Button-1>', self.linea_xy)  # Vincula el evento de clic izquierdo a la función linea_xy
+        self.canvas.bind('<ButtonRelease-1>', self.dibujar_linea)  # Vincula el evento de soltar clic izquierdo a la función dibujar_linea
+
+    def activar_rectangulo(self):
+        self.desactivar_lapiz()  # Desactiva cualquier otra herramienta
+        self.current_tool = "rectangle"  # Establece la herramienta actual como rectángulo
+        self.canvas.config(cursor="cross")  # Cambia el cursor a una cruz
+        self.canvas.bind('<Button-1>', self.linea_xy)  # Vincula el evento de clic izquierdo a la función linea_xy
+        self.canvas.bind('<ButtonRelease-1>', self.dibujar_rectangulo)  # Vincula el evento de soltar clic izquierdo a la función dibujar_rectangulo
+
+    def activar_ovalo(self):
+        self.desactivar_lapiz()  # Desactiva cualquier otra herramienta
+        self.current_tool = "oval"  # Establece la herramienta actual como óvalo
+        self.canvas.config(cursor="cross")  # Cambia el cursor a una cruz
+        self.canvas.bind('<Button-1>', self.linea_xy)  # Vincula el evento de clic izquierdo a la función linea_xy
+        self.canvas.bind('<ButtonRelease-1>', self.dibujar_ovalo)  # Vincula el evento de soltar clic izquierdo a la función dibujar_ovalo
+
+    def paint(self, event):  # Define la función de pintar
+        if self.current_tool == "paint":
+            x1, y1, x2, y2 = (event.x - self.espesor_pincel.get() / 2), (event.y - self.espesor_pincel.get() / 2), (event.x + self.espesor_pincel.get() / 2), (event.y + self.espesor_pincel.get() / 2)
+            self.canvas.create_oval(x1, y1, x2, y2, fill=self.color, outline=self.color)
+
+    def dibujar_linea(self, event):  # Define la función para dibujar una línea
+        if self.current_tool == "line":
+            self.canvas.create_line(self.linea_x, self.linea_y, event.x, event.y, fill=self.color, width=self.espesor_pincel.get())
+
+    def dibujar_rectangulo(self, event):  # Define la función para dibujar un rectángulo
+        if self.current_tool == "rectangle":
+            self.canvas.create_rectangle(self.linea_x, self.linea_y, event.x, event.y, outline=self.color, width=self.espesor_pincel.get())
+
+    def dibujar_ovalo(self, event):  # Define la función para dibujar un óvalo
+        if self.current_tool == "oval":
+            self.canvas.create_oval(self.linea_x, self.linea_y, event.x, event.y, outline=self.color, width=self.espesor_pincel.get())
 
 
     def paint(self, event):  # Define la función de pintar
