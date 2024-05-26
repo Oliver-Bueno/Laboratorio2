@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import filedialog, colorchooser  # Importa colorchooser para la paleta de colores
 from PIL import ImageGrab
 from Tooltip import Tooltip
+from tkinter import simpledialog
 
 class Paint:  # Define la clase Paint
     
@@ -16,6 +17,8 @@ class Paint:  # Define la clase Paint
         self.modo_dibujo = False
         self.color = "black"  # Variable para almacenar el color seleccionado
         self.poligono_puntos = []  # Lista para almacenar los puntos del polígono
+        self.elementos_dibujados = []  # Lista para almacenar los elementos dibujados
+        self.undo_stack = []  # Pila para realizar el deshacer
 
         self.canvas = tk.Canvas(self.ventana, width=945, height=520, bg="white")  # Crea un lienzo en la ventana
         self.canvas.place(x=140, y=40)  # Coloca el lienzo en la ventana
@@ -70,13 +73,13 @@ class Paint:  # Define la clase Paint
         self.btnPoligono = tk.Button(self.ventana, image=self.poligono, border=0, background="AntiqueWhite1", command=self.activar_poligono)  # Agrega el comando para activar el polígono
         self.btnPoligono.place(x=80, y=150, width=40, height=40)
         Tooltip(self.btnPoligono, "Poligono")
-        
 
         self.btnOvalo = tk.Button(self.ventana, image=self.ovalo, border=0, background="AntiqueWhite1", command=self.activar_ovalo)  # Botón para activar la herramienta de óvalo
         self.btnOvalo.place(x=20, y=220, width=40, height=40)
         Tooltip(self.btnOvalo, "Ovalo")
 
-        self.btnTexto = tk.Button(self.ventana, image=self.texto, border=0, background="AntiqueWhite1")
+
+        self.btnTexto = tk.Button(self.ventana, image=self.texto, border=0, background="AntiqueWhite1", command=self.activar_texto)
         self.btnTexto.place(x=83, y=223)
         Tooltip(self.btnTexto, "Texto")
 
@@ -89,7 +92,7 @@ class Paint:  # Define la clase Paint
         self.save_button.place(x=15, y=4, width=35, height=35)
 
         # Crea el botón de deshacer y lo coloca en la ventana
-        self.btnDevolver = tk.Button(self.ventana, image=self.Deshacer, border=0, background="AntiqueWhite1")
+        self.btnDevolver = tk.Button(self.ventana, image=self.Deshacer, border=0, background="AntiqueWhite1", command=self.deshacer)
         self.btnDevolver.place(x=45, y=4, width=35, height=35)
         Tooltip(self.btnDevolver, "Deshacer")
 
@@ -174,10 +177,23 @@ class Paint:  # Define la clase Paint
             self.canvas.create_polygon(self.poligono_puntos, outline=self.color, fill='', width=self.espesor_pincel.get())  # Dibuja el polígono
             self.poligono_puntos = []  # Resetea la lista de puntos
 
-    def paint(self, event):  # Define la función de pintar
+    def activar_texto(self):
+        self.desactivar_lapiz()  # Desactiva cualquier otra herramienta
+        self.current_tool = "text"  # Establece la herramienta actual como texto
+        self.canvas.config(cursor="xterm")  # Cambia el cursor a un cursor de texto
+        self.canvas.bind("<Button-1>", self.colocar_texto)  # Vincula el evento de clic izquierdo a la función colocar_texto
+
+    def colocar_texto(self, event):
+        texto = simpledialog.askstring("Texto", "Introduzca el texto:")  # Solicita al usuario que introduzca el texto
+        if texto:
+            self.canvas.create_text(event.x, event.y, text=texto, fill=self.color, font=("Arial", 12, "bold"))  # Crea el texto en el lienzo
+
+    def paint(self, event):
         if self.current_tool == "paint":
             x1, y1, x2, y2 = (event.x - self.espesor_pincel.get() / 2), (event.y - self.espesor_pincel.get() / 2), (event.x + self.espesor_pincel.get() / 2), (event.y + self.espesor_pincel.get() / 2)
-            self.canvas.create_oval(x1, y1, x2, y2, fill=self.color, outline=self.color)
+            elemento = self.canvas.create_oval(x1, y1, x2, y2, fill=self.color, outline=self.color)
+            self.elementos_dibujados.append(elemento)  # Agrega el elemento dibujado a la lista
+            self.undo_stack.append(elemento)
 
     def dibujar_linea(self, event):  # Define la función para dibujar una línea
         if self.current_tool == "line":
@@ -200,6 +216,12 @@ class Paint:  # Define la clase Paint
             y1 = y + self.canvas.winfo_height()
             image = ImageGrab.grab(bbox=(x, y, x1, y1))  # Captura la imagen del lienzo
             image.save(filename)  # Guarda la imagen en el archivo seleccionado
+
+    def deshacer(self):
+        if self.undo_stack:  # Verifica si la pila de deshacer no está vacía
+            elemento = self.undo_stack.pop()  # Elimina el último elemento de la pila
+            self.canvas.delete(elemento)  # Elimina el elemento dibujado del lienzo
+            self.elementos_dibujados.remove(elemento)
 
     def desactivar_lapiz(self):
         self.canvas.unbind('<B1-Motion>')  # Desvincula el evento de arrastre del ratón
