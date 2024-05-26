@@ -1,6 +1,6 @@
 import tkinter as tk # Importa el módulo tkinter para crear interfaces gráficas
 from tkinter import *  # Importa todas las clases y funciones de tkinter
-from tkinter import filedialog  # Importa la clase filedialog para abrir el diálogo de archivos
+from tkinter import filedialog, colorchooser  # Importa colorchooser para la paleta de colores  # Importa la clase filedialog para abrir el diálogo de archivos
 from PIL import ImageGrab  # Importa la función ImageGrab de PIL para capturar imágenes de la pantalla
 from Tooltip import Tooltip  # Importa la clase Tooltip que probablemente creaste o importaste de otro lugar
 
@@ -21,8 +21,6 @@ class Paint:  # Define la clase Paint
         self.canvas.place(x=140, y=40)  # Coloca el lienzo en la ventana
 
         # Crea líneas en el lienzo para delimitar el área de dibujo
-        
-
         canvas_colores = Canvas(self.ventana, bg='black', width=500,  height=40)
         canvas_colores.place(x=30, y=575)
 
@@ -37,6 +35,11 @@ class Paint:  # Define la clase Paint
         for color, x in colores:
             id = canvas_colores.create_rectangle((x, 10, x + 20, 30), fill=color)
             canvas_colores.tag_bind(id, '<Button-1>', lambda event, col=color: self.mostrar_color(col))
+        
+        # Botón para la paleta de colores
+        self.btnPaleta = tk.Button(self.ventana, text="Paleta de Colores", command=self.abrir_paleta_colores, background="gold")  # Crea el botón para abrir la paleta de colores
+        self.btnPaleta.place(x=900, y=580)  # Coloca el botón en la ventana
+        Tooltip(self.btnPaleta, "Abrir paleta de colores")  # Añade un tooltip al botón de la paleta de colores
 
 
         # Carga las imágenes de los iconos de las herramientas de dibujo
@@ -119,6 +122,11 @@ class Paint:  # Define la clase Paint
 
     def mostrar_color(self, nuevo_color):
         self.color = nuevo_color # Añadido: Método para actualizar el color
+
+    def abrir_paleta_colores(self):
+        color_seleccionado = colorchooser.askcolor(title="Seleccionar color")  # Abre el diálogo de la paleta de colores
+        if color_seleccionado[1] is not None:
+            self.color = color_seleccionado[1]  # Actualiza el color seleccionado
     
     
     def limpiar(self):
